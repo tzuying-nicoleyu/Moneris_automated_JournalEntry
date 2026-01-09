@@ -26,7 +26,7 @@ load_dotenv(".env")
 
 # BEFORE RUNNING TODO:
 # 1. Make sure to install required libraries
-# 2. Update your own credentails in the .env file
+# 2. Create your own credentails in a .env file in your local environment. Do not push to git!!
 # 3. Update the download folder path in Checkpoint class to your own path
 
 
@@ -111,7 +111,7 @@ class Checkpoint:
         self.check_required_columns()
         self.check_total_sameAs_deposit()
         self.check_cardType()
-        #self.check_date()
+        #self.check_date() 
         print("******✅ All checks passed successfully.******")
         print("\n")
         return self.df[self.required_columns]
