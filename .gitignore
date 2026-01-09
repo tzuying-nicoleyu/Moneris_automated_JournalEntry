@@ -3,3 +3,6 @@ debug.ipynb
 *.db
 moneris_practice_mapping.csv
 
+venv/
+__pycache__/
+*.pyc
