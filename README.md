@@ -20,11 +20,11 @@ git clone https://github.com/tzuying-nicoleyu/Moneris_automated_JournalEntry.git
 cd Moneris_automated_JournalEntry
 pip install -r requirements.txt
 ```
-2. Prerequsite
+2. File Needed in main project folder: 
 - Install a Moneris.db in the main project folder
 - Need the moneris_practice_mapping.csv in the main project folder
 
-2. How to run:
+3. How to run:
 ``` bash
 python main.py
 ```
