@@ -43,15 +43,11 @@ class Checkpoint:
         list_of_files = glob.glob(full_path)
         latest_file = max(list_of_files, key=os.path.getctime) #latest change time of the file
 
-        #test file - Uncomment this while testing, and change the read_csv line below
-        #test_file = r"C:\Users\Tzuying\Project\Moneris\test_file.csv"
-        if not test_file_path: # didn't put any file path
+        
+        if not test_file_path: # didn't put any test file path
             read_file = latest_file
-        else: # put some file path
+        else: # did put test file path
             read_file = test_file_path   
-        print("test_file_path:", test_file_path)
-        print("latest_file:", latest_file)
-        print("read_file:", read_file)
 
         self.df = pd.read_csv(read_file) #change it to latest_file when running for real
         self.required_columns = ["Settlement Date", "Merchant Number", "Card Type", "Net Deposit"]
@@ -114,7 +110,7 @@ class Checkpoint:
             else:
                 raise ValueError(f"⛔️ Settlement Date {file_date} does not match yesterday's date {yesterday}.")
 
-    def run_all_checks(self):
+    def run_all_checks(self, check_date: bool = True):
         """
         Run all checkpoint checks.
         Returns the moneris csv.file, "sales summary by merchant" as DataFrame and filters to required columns.
@@ -123,7 +119,10 @@ class Checkpoint:
         self.check_required_columns()
         self.check_total_sameAs_deposit()
         self.check_cardType()
-        #self.check_date() 
+
+        if check_date:
+            self.check_date() 
+            
         print("******✅ All checks passed successfully.******")
         print("\n")
         return self.df[self.required_columns]
@@ -384,16 +383,18 @@ class Summary:
         fails = []
         fail_raw = [r for r in results if r.get("status") != 200]
         if nfailure > 0:
-            for fail in fail_raw:
+            for fail in fail_raw: 
                 body = fail.get("body") or {}
                 err = body.get("error") or {}
                 raw_msg = err.get("message") or {}
-    
-                if isinstance(raw_msg, str):
-                    cleaned = raw_msg.replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
-                    data = json.loads(cleaned)
-                else:
-                    data = {"name": "Unknown Error", "message": str(raw_msg)}
+                try:
+                    if isinstance(raw_msg, str):
+                        cleaned = raw_msg.replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
+                        data = json.loads(cleaned)
+                    else:
+                        data = {"name": "Unknown Error", "message": str(raw_msg)}
+                except:
+                    data = {"name": "Unknown Error", "message": raw_msg}
 
                 f = { 'payloadExternalId': fail["payloadExternalId"], 
                         'Internal ID': fail["payloadExternalId"].split("_")[1],
