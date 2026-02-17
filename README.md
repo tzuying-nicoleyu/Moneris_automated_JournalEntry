@@ -25,9 +25,15 @@ pip install -r requirements.txt
 - Need the moneris_practice_mapping.csv in the main project folder
 
 3. How to run:
+step 1. Login to Moneris Portal. (https://www.moneris.com/en/login-portal-hub)
+step 2. Open the menu > Go to Reports > Go to'CSV Downloader' page
+step 3. Choose "Sales summary by merchant" as Report. Choose the date. Click Csv Download. 
+step 4. Please choose a designated folder. Update the download_folder_path in Checkpoint() class in classes.py to this designated folder path.
+step 5. In terminal run the following code.
 ``` bash
 python main.py
 ```
+/*Warning*/: The main script process one file at a time. To run multiple files, repeat step 3 - 5. 
 
 
 

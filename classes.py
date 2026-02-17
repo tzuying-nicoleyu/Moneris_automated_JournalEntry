@@ -38,8 +38,8 @@ class Checkpoint:
         If test_file_path is passed, then read test file otherwise read latest file from the destined folder.
         """
         file_pattern= r"Sales Summary by Merchant_Download Date *"
-        folder_path = r"C:\Users\Tzuying\OneDrive - smilesfirstcorp\Reporting & Business Intelligence\Moneris\Downloaded_Files" # TODO: Change to your download folder path
-        full_path = os.path.join(folder_path, file_pattern ) 
+        download_folder_path = r"C:\Users\Tzuying\OneDrive - smilesfirstcorp\Reporting & Business Intelligence\Moneris\Downloaded_Files" # TODO: Change to your download folder path
+        full_path = os.path.join(download_folder_path, file_pattern ) 
         list_of_files = glob.glob(full_path)
         latest_file = max(list_of_files, key=os.path.getctime) #latest change time of the file
 
@@ -122,7 +122,7 @@ class Checkpoint:
 
         if check_date:
             self.check_date() 
-            
+
         print("******✅ All checks passed successfully.******")
         print("\n")
         return self.df[self.required_columns]
