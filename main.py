@@ -6,6 +6,7 @@ import sys
 import time
 import sqlite3
 
+
 async def spinner(message="Loading..."):
     for symbol in itertools.cycle(["-", "\\", "|", "/"]):
         print(f"\r{message} {symbol}", end="", flush=True)
@@ -53,10 +54,13 @@ async def main():
     print(f"Time used: {elapsed:.2f} seconds")
 
     # generate summary and store into sqlite
+    #print(results)
     summary = Summary.generate(results, df)
     summary["created_date"] = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
     summary["Merchant Number"] = summary["Merchant Number"].apply(lambda x: json.dumps(x) if isinstance(x, list) else x)
     print(summary)
+
+    
 
 
     # Stage table to avoid inserting duplicates
@@ -76,6 +80,10 @@ async def main():
     conn.commit()    
 
     conn.close()
+
+    # save summary to csv file
+    Summary.save_to_csv(summary) 
+    
     print("\n" + "😼 Done!")
 
 

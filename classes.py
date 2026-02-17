@@ -5,7 +5,7 @@ import os
 import glob
 import sys
 import json
-from datetime import datetime, timedelta
+from datetime import  datetime, timedelta
 from zoneinfo import ZoneInfo
 import pandas as pd
 
@@ -18,7 +18,7 @@ import asyncio
 
 import base64
 import hashlib
-
+import datetime
 from dotenv import load_dotenv
 import os
 load_dotenv(".env")
@@ -32,17 +32,28 @@ load_dotenv(".env")
 
 # Checkpoint Class 
 class Checkpoint:
-    def __init__(self):
+    def __init__(self,test_file_path=None):
         """
         Initialize the Checkpoint with the and grab latest moneris sales CSV file and required columns.
+        If test_file_path is passed, then read test file otherwise read latest file from the destined folder.
         """
         file_pattern= r"Sales Summary by Merchant_Download Date *"
-        folder_path = r"C:\Users\Tzuying\OneDrive - smilesfirstcorp\Reporting & Business Intelligence\Moneris" # TODO: Change to your download folder path
+        folder_path = r"C:\Users\Tzuying\OneDrive - smilesfirstcorp\Reporting & Business Intelligence\Moneris\Downloaded_Files" # TODO: Change to your download folder path
         full_path = os.path.join(folder_path, file_pattern ) 
         list_of_files = glob.glob(full_path)
-        latest_file = max(list_of_files, key=os.path.getctime)
+        latest_file = max(list_of_files, key=os.path.getctime) #latest change time of the file
 
-        self.df = pd.read_csv(latest_file)
+        #test file - Uncomment this while testing, and change the read_csv line below
+        #test_file = r"C:\Users\Tzuying\Project\Moneris\test_file.csv"
+        if not test_file_path: # didn't put any file path
+            read_file = latest_file
+        else: # put some file path
+            read_file = test_file_path   
+        print("test_file_path:", test_file_path)
+        print("latest_file:", latest_file)
+        print("read_file:", read_file)
+
+        self.df = pd.read_csv(read_file) #change it to latest_file when running for real
         self.required_columns = ["Settlement Date", "Merchant Number", "Card Type", "Net Deposit"]
 
     def check_required_columns(self):
@@ -81,22 +92,23 @@ class Checkpoint:
     def check_date(self):
         """
         Check if the 'Settlement Date' corresponds to yesterday's date. 
-        If today is monday, it checks for last Saturday's date.
+        If today is monday, it checks for last Friday's date.
+        If today is tuesday, it checks for Saturday's and Monday's date.
         Otherwise, always checks for yesterday's date.
         """
 
         file_date = pd.to_datetime(self.df['Settlement Date'], format='%Y%m%d').dt.date
         file_date = file_date.unique()[0] 
-        yesterday = datetime.today().date() - timedelta(days = 1)
-        today = datetime.today().date()
+        yesterday = datetime.date.today()- timedelta(days = 1)
+        today = datetime.date.today()
         if today.weekday() == 0:  # Monday
-            last_saturday = today - timedelta(days=2)
             last_friday = today - timedelta(days=3)
-            if file_date == last_saturday or file_date == last_friday:
-                print(f"✅ Settlement Date {file_date} is last Saturday's or Friday's date.")
+            last_saturday = today - timedelta(days=2)
+            if file_date == last_friday or file_date == last_saturday:
+                print(f"✅ Settlement Date {file_date} is last Friday's date.")
             else:
-                raise ValueError(f"⛔️ Settlement Date {file_date} does not match last Saturday's or Friday's date {last_saturday}.")
-        else:
+                raise ValueError(f"⛔️ Settlement Date {file_date} does not match last Friday's date {last_friday} or last Saturday's date {last_saturday}.")
+        else: # All weekdays except Monday 
             if file_date == yesterday:
                 print(f"✅ Settlement Date {file_date} is yesterday's date.")
             else:
@@ -156,7 +168,7 @@ class Transformation:
             prefix = card_type_mapping.get(10)
             memo = f"{prefix}{mmdd} {last_8_digits}"
         
-        debit_account = 1044 #NEED TO CHANGE TO 6617 WHEN LIVE
+        debit_account = 6617 #NEED TO CHANGE TO 6617 WHEN LIVE
         credit_account = 2608 # Collection Account - Practices
         
         debit_line = {"account": debit_account,"debit": amount, "memo": memo}
@@ -234,7 +246,7 @@ class FinalCheckpoint:
 class Loader:
     def __init__(self, payloads):
         self.payloads = payloads
-        self.url = "https://4571901-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=2331&deploy=1"
+        self.url = "https://4571901.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=3084&deploy=1"  #need to change when live
         self.auth = {
         "client_key": os.getenv("CLIENT_KEY"),
         "client_secret": os.getenv("CLIENT_SECRET"),
@@ -376,7 +388,7 @@ class Summary:
                 body = fail.get("body") or {}
                 err = body.get("error") or {}
                 raw_msg = err.get("message") or {}
-
+    
                 if isinstance(raw_msg, str):
                     cleaned = raw_msg.replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
                     data = json.loads(cleaned)
@@ -439,3 +451,13 @@ class Summary:
         combined = pd.concat(result_frames, ignore_index=True, sort=False) 
 
         return combined
+    
+    @staticmethod
+    def save_to_csv(summary_df):
+        """ Save the summary DataFrame to a CSV file. """
+        today = datetime.date.today()
+        today_str = today.strftime("%Y-%m-%d")
+        output_file = f"JE_Summary_{today_str}.csv"
+        full_path = os.path.join("Summary_Csv_Files", output_file)
+        summary_df.to_csv(full_path, index=False, encoding="utf-8")
+        print(f"✅ Summary saved to {full_path}")
