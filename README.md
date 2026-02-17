@@ -21,19 +21,19 @@ cd Moneris_automated_JournalEntry
 pip install -r requirements.txt
 ```
 2. File Needed in main project folder: 
-- Install a Moneris.db in the main project folder
-- Need the moneris_practice_mapping.csv in the main project folder
+    - Install a Moneris.db in the main project folder
+    - Need the moneris_practice_mapping.csv in the main project folder
 
 3. How to run:
-step 1. Login to Moneris Portal. (https://www.moneris.com/en/login-portal-hub)
-step 2. Open the menu > Go to Reports > Go to'CSV Downloader' page
-step 3. Choose "Sales summary by merchant" as Report. Choose the date. Click Csv Download. 
-step 4. Please choose a designated folder. Update the download_folder_path in Checkpoint() class in classes.py to this designated folder path.
-step 5. In terminal run the following code.
+    - step 1. Login to Moneris Portal. (https://www.moneris.com/en/login-portal-hub)  
+    - step 2. Open the menu > Go to Reports > Go to'CSV Downloader' page  
+    - step 3. Choose "Sales summary by merchant" as Report. Choose the date. Click Csv Download.  
+    - step 4. Please choose a designated folder. Update the download_folder_path in Checkpoint() class in classes.py to this designated folder path.  
+    - step 5. In terminal run the following code.  
 ``` bash
 python main.py
 ```
-/*Warning*/: The main script process one file at a time. To run multiple files, repeat step 3 - 5. 
+/*Notes*/: The main script process one file at a time. To run multiple files, repeat step 3 - 5. 
 
 
 
