@@ -62,17 +62,19 @@ async def main():
     # read and validate data
 
     # Do this while testing, uncomment test_file_path and pass through the Checkpoint() class
-    # test_file_path = r"C:\Users\Tzuying\Project\Moneris\test_file.csv"
+    #test_file_path = r"C:\Users\Tzuying\Project\Moneris\Adjustment_File\Financial_Adjustment_Template_File.csv"
 
     # Replace with the following, if you want to turn off the check date features.
-    # df = Checkpoint().run_all_checks(check_date=False)
+    df = Checkpoint().run_all_checks(check_date=False)
 
-    df = Checkpoint().run_all_checks()
+    #df = Checkpoint(test_file_path=test_file_path).run_all_checks(check_date=False)
+
+    #df = Checkpoint().run_all_checks()
 
     # store to database
     store_to_sql(df)
 
-    # continue with transformation
+    # continue with transformationy
     payloads = Transformation(df).create_payloads()
     final_payloads = FinalCheckpoint(payloads).run_final_check()
     

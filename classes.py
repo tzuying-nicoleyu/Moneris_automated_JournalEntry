@@ -78,7 +78,7 @@ class Checkpoint:
         Check if 'Card Type' column contains only valid values.
         Raises ValueError if new card types are found.
         """
-        valid_card_types = [1,2,3,10]
+        valid_card_types = [1,2,3,6,10,16]
         invalid_card_types =  [ct for ct in self.df["Card Type"].unique()  if ct not in valid_card_types]
         if invalid_card_types:
             raise ValueError(f"⛔️ New Card Types found: {invalid_card_types}")
@@ -101,7 +101,7 @@ class Checkpoint:
             last_friday = today - timedelta(days=3)
             last_saturday = today - timedelta(days=2)
             if file_date == last_friday or file_date == last_saturday:
-                print(f"✅ Settlement Date {file_date} is last Friday's date.")
+                print(f"✅ Settlement Date {file_date} is last Friday's or Saturday's date.")
             else:
                 raise ValueError(f"⛔️ Settlement Date {file_date} does not match last Friday's date {last_friday} or last Saturday's date {last_saturday}.")
         else: # All weekdays except Monday 
@@ -151,11 +151,14 @@ class Transformation:
                 1: "VSA",
                 2: "MC",
                 3: "AMX",
-                10: "EF"
+                6: "DSC",
+                10: "EF",
+                16: "UnionPay"
             }
         cardtype = line["Card Type"]
         if cardtype == 1: # Visa
             prefix = card_type_mapping.get(1)
+            #memo = f"REV DEP{last_8_digits}"
             memo = f"{prefix} DEP{last_8_digits}"
         elif cardtype == 2: # MasterCard
             prefix = card_type_mapping.get(2)
@@ -163,12 +166,19 @@ class Transformation:
         elif cardtype == 3: # AMEX
             prefix = card_type_mapping.get(3)
             memo = f"{prefix} DEP{last_8_digits}"
+        elif cardtype == 6: # Discover
+            prefix = card_type_mapping.get(6)
+            memo = f"{prefix} DEP{last_8_digits}"
         elif cardtype == 10: # Interac
             prefix = card_type_mapping.get(10)
+            memo = f"{prefix}{mmdd} {last_8_digits}"
+        elif cardtype == 16: # UnionPay
+            prefix = card_type_mapping.get(16)
             memo = f"{prefix}{mmdd} {last_8_digits}"
         
         debit_account = 6617 #NEED TO CHANGE TO 6617 WHEN LIVE
         credit_account = 2608 # Collection Account - Practices
+        #credit_account = 6667 # This is for financial adjustment
         
         debit_line = {"account": debit_account,"debit": amount, "memo": memo}
         credit_line = {"account": credit_account,"credit": amount, "memo": memo}
@@ -183,7 +193,7 @@ class Transformation:
                     "trandate": self.date, 
                     "memo": f"Moneris Collection for {practice_name} at {self.date}", 
                     "subsidiary": id,
-                    "externalid": f"moneris_{id}_{self.date}"
+                    "externalid": f"moneris_{id}_{self.date}" # Replace with f"moneris_{id}_{self.date}_adj" when doing adjustment
                 }
         return header
     
@@ -254,7 +264,7 @@ class Loader:
         "signature_method": SIGNATURE_HMAC_SHA256,
         "realm": os.getenv("REALM"),
         }
-        self.concurrency = 5
+        self.concurrency = 2
         self.max_retries = 3
     
     def sign_oauth1(self, url, method="POST", body=""):

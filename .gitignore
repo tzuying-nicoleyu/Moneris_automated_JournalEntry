@@ -2,10 +2,11 @@
 debug.ipynb
 sql.ipynb 
 *.db
-moneris_practice_mapping.csv
+
 
 venv/
 __pycache__/
 *.pyc
 
 *.csv
+!moneris_practice_mapping.csv

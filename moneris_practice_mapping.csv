@@ -1,0 +1,53 @@
+﻿Merchant Number,Bank,Bank Account,Matched Practice Code,Netsuite Name,Name (no hierarchy),Internal ID,Is Practice Closed?,Status
+30208766776,RBC,*************7762,ON-C-CWL,Smiles First Corporation : Smiles First Cornwall,Smiles First Cornwall,19,Yes,Active
+30113225891,Desjardins,*************0508,ON-C-SEC,Smiles First Corporation : Second Street Cornwall,Second Street Cornwall,73,Yes,Active
+30213041942,RBC,*************8605,ON-G-GRA,Smiles First Corporation : Grand Valley Dental,Grand Valley Dental,62,Yes,Active
+30211889979,Meridian,******************7311,ON-T-OSC,Smiles First Corporation : Oral Surgery College Street - (Toronto),Oral Surgery College Street - (Toronto),51,Yes,Active
+30213378310,RBC,*************9997,ON-T-RUS,Smiles First Corporation : Dr. Russ,Dr. Russ,76,Yes,Active
+30211060647,RBC,*************1070,QC-L-LAU,Smiles First Corporation : Centre Dentaire Saint Laurent,Centre Dentaire Saint Laurent,23,Yes,Cancelled
+30109324443,RBC,*************1070,QC-L-LAU,Smiles First Corporation : Centre Dentaire Saint Laurent,Centre Dentaire Saint Laurent,23,Yes,Active
+30210770063,RBC,*************5889,ON-S-SUD,Smiles First Corporation : Sudbury Dental Clinic,Sudbury Dental Clinic,34,No,Active
+30413514385,RBC,*************0475,AB-E-AES,Smiles First Corporation : Aesthetic DentaCare Group - Edmonton,Aesthetic DentaCare Group - Edmonton,46,No,Active
+30411606084,RBC,*************0475,AB-E-AES,Smiles First Corporation : Aesthetic DentaCare Group - Edmonton,Aesthetic DentaCare Group - Edmonton,46,No,Active
+30213012984,RBC,*************0475,AB-E-AES,Smiles First Corporation : Aesthetic DentaCare Group - Edmonton,Aesthetic DentaCare Group - Edmonton,46,No,Active
+30211037462,RBC,*************2680,AB-R-RED,Smiles First Corporation : Red Deer Dental,Red Deer Dental,36,No,Cancelled
+30410843829,RBC,*************2680,AB-R-RED,Smiles First Corporation : Red Deer Dental,Red Deer Dental,36,No,Active
+30211037504,BMO,*************1540,MB-W-SOU,Smiles First Corporation : Southside Dental,Southside Dental,20,No,Cancelled
+30408953549,Meridian,******************0611,MB-W-SOU,Smiles First Corporation : Southside Dental,Southside Dental,20,No,Active
+30112322319,RBC,*************3299,NB-T-PEN,Smiles First Corporation : Clinique Dentaire de la Peninsule,Clinique Dentaire de la Peninsule,56,No,Active
+30109346529,RBC,*************3739,NL-G-EXP,Smiles First Corporation : Exploits Valley Dental,Exploits Valley Dental,24,No,Active
+30113588132,RBC,*************7002,NS-H-LAC,Smiles First Corporation : Lacewood Square Dentistry,Lacewood Square Dentistry,28,No,Active
+30111463346,RBC,*************9337,NS-H-PKL,Smiles First Corporation : Park Lane Dental Specialists,Park Lane Dental Specialists,43,No,Active
+30113413877,RBC,*************1113,NS-T-LDC,Smiles First Corporation : Landmark Dental Care,Landmark Dental Care,79,No,Active
+30204653440,RBC,*************1916,ON-A-PAR,Smiles First Corporation : Dr. Parekh & Associates,Dr. Parekh & Associates,12,No,Active
+30113225859,Desjardins,*************0490,ON-C-ART,Smiles First Corporation : Dental Arts Cornwall,Dental Arts Cornwall,57,No,Active
+30213181722,Desjardins,*************0532,ON-C-LUI,Smiles First Corporation : Dr. Joice Lui,Dr. Joice Lui,74,No,Active
+30213226576,Desjardins,*************0532,ON-C-LUI,Smiles First Corporation : Dr. Joice Lui,Dr. Joice Lui,74,No,Active
+30113225982,Desjardins,*************0482,ON-C-YOR,Smiles First Corporation : York Street Cornwall,York Street Cornwall,72,No,Active
+30213041959,RBC,*************1300,ON-K-DEE,Smiles First Corporation : Deer Ridge Dental,Deer Ridge Dental,61,No,Active
+30213108485,RBC,*************2136,ON-K-KIT,Smiles First Corporation : Kitchener Periodontal Dental Centre,Kitchener Periodontal Dental Centre,35,No,Active
+30210841120,RBC,*************2136,ON-K-KIT,Smiles First Corporation : Kitchener Periodontal Dental Centre,Kitchener Periodontal Dental Centre,35,No,Active
+30113396197,Meridian,******************1911,ON-N-BEL,Smiles First Corporation : Bells Corners Dental,Bells Corners Dental,78,No,Active
+30213041934,RBC,*************8117,ON-S-ARD,Smiles First Corporation : Arden Park Dental,Arden Park Dental,60,No,Active
+30209322769,TD,*****************6498,ON-S-FAM,Smiles First Corporation : Family Dental Centre,Family Dental Centre,16,No,Cancelled
+30207777881,RBC,*************6334,ON-S-FAM,Smiles First Corporation : Family Dental Centre,Family Dental Centre,16,No,Active
+30208112294,RBC,*************5346,ON-S-NIA,Smiles First Corporation : Niagara Periodontics,Niagara Periodontics,18,No,Active
+30209067158,RBC,*************9809,ON-T-BRO,Smiles First Corporation : Brown's Line Dental,Brown's Line Dental,21,No,Active
+30213299060,RBC,*************7605,ON-T-COL,Smiles First Corporation : Dr. Dana G Colson & Associates,Dr. Dana G Colson & Associates,44,No,Cancelled
+30213108568,RBC,*************7605,ON-T-COL,Smiles First Corporation : Dr. Dana G Colson & Associates,Dr. Dana G Colson & Associates,44,No,Active
+30211294238,RBC,*************7605,ON-T-COL,Smiles First Corporation : Dr. Dana G Colson & Associates,Dr. Dana G Colson & Associates,44,No,Active
+30212412888,Meridian,******************1311,ON-T-EVD,Smiles First Corporation : Ellesmere Dental,Ellesmere Dental,58,No,Active
+30209792227,RBC,*************6615,ON-T-FRA,Smiles First Corporation : Dr. Frances Ross,Dr. Frances Ross,67,No,Active
+30213015409,RBC,*************6615,ON-T-FRA,Smiles First Corporation : Dr. Frances Ross,Dr. Frances Ross,67,No,Active
+30211885092,RBC,*************7571,ON-T-OSK,Smiles First Corporation : Oral Surgery Keele Street - (North York),Oral Surgery Keele Street - (North York),53,No,Active
+30210890283,Meridian,******************2311,ON-T-RGH,Smiles First Corporation : Regal Heights Dental Centre,Regal Heights Dental Centre,37,No,Active
+30213043799,RBC,*************8660,ON-T-TIL,Smiles First Corporation : Tillsonburg Dental,Tillsonburg Dental,64,No,Active
+30213545066,Desjardins,**************0429,ON-W-ERD,Smiles First Corporation : East Riverside Dental Center,East Riverside Dental Center,81,No,Active
+30212390811,RBC,*************8612,ON-W-OSW,Smiles First Corporation : Oral Surgery - Kevin J. McCann,Oral Surgery - Kevin J. McCann,59,No,Active
+30213044011,RBC,*************8645,ON-W-WAT,Smiles First Corporation : Waterford Dental,Waterford Dental,63,No,Active
+30110906923,BMO,*************8915,QC-M-ARI,Smiles First Corporation : Centre dentaire Centre-Ville Dentaria Inc.,Centre dentaire Centre-Ville Dentaria Inc.,40,No,Active
+30109315086,BMO,*************1532,QC-M-LAM,Smiles First Corporation : Centre Dentaire Saint Lambert,Centre Dentaire Saint Lambert,22,No,Active
+30111506003,RBC,*************9345,QC-M-TRE,Smiles First Corporation : Tremblay Dental Clinic,Tremblay Dental Clinic,45,No,Active
+30109765967,RBC,*************7335,QC-Q-QBC,Smiles First Corporation : Centre Dentaire Ville De Quebec,Centre Dentaire Ville De Quebec,26,No,Active
+30209452459,RBC,*************1559,SFC,Smiles First Corporation,Smiles First Corporation,1,No,Active
+30213519665,Meridian,******************5511,ON-O-OAK,Smiles First Corporation : Oakville - Dr. Taylor,Oakville - Dr. Taylor,42,No,Active
