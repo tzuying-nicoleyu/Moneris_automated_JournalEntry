@@ -19,9 +19,12 @@ import asyncio
 import base64
 import hashlib
 import datetime
+from typing import Literal, cast
 from dotenv import load_dotenv
 import os
 load_dotenv(".env")
+
+HTTPMethod = Literal["CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE"]
 
 
 # BEFORE RUNNING TODO:
@@ -87,28 +90,22 @@ class Checkpoint:
 
     def check_date(self):
         """
-        Check if the 'Settlement Date' corresponds to yesterday's date. 
-        If today is monday, it checks for last Friday's date.
-        If today is tuesday, it checks for Saturday's and Monday's date.
-        Otherwise, always checks for yesterday's date.
+        Check that every 'Settlement Date' in the file is an expected date.
+        If today is Monday, the file may contain last Friday's and/or Saturday's date.
+        Otherwise, it must contain only yesterday's date.
+        Works for both single-date and multi-date files.
         """
-
-        file_date = pd.to_datetime(self.df['Settlement Date'], format='%Y%m%d').dt.date
-        file_date = file_date.unique()[0] 
-        yesterday = datetime.date.today()- timedelta(days = 1)
+        file_dates = set(pd.to_datetime(self.df['Settlement Date'], format='%Y%m%d').dt.date.unique())
         today = datetime.date.today()
-        if today.weekday() == 0:  # Monday
-            last_friday = today - timedelta(days=3)
-            last_saturday = today - timedelta(days=2)
-            if file_date == last_friday or file_date == last_saturday:
-                print(f"✅ Settlement Date {file_date} is last Friday's or Saturday's date.")
-            else:
-                raise ValueError(f"⛔️ Settlement Date {file_date} does not match last Friday's date {last_friday} or last Saturday's date {last_saturday}.")
-        else: # All weekdays except Monday 
-            if file_date == yesterday:
-                print(f"✅ Settlement Date {file_date} is yesterday's date.")
-            else:
-                raise ValueError(f"⛔️ Settlement Date {file_date} does not match yesterday's date {yesterday}.")
+        if today.weekday() == 0:  # Monday -> last Friday and/or Saturday
+            allowed = {today - timedelta(days=3), today - timedelta(days=2)}
+        else:  # All other days -> yesterday
+            allowed = {today - timedelta(days=1)}
+
+        unexpected = file_dates - allowed
+        if unexpected:
+            raise ValueError(f"⛔️ Unexpected Settlement Date(s) {sorted(unexpected)}; expected {sorted(allowed)}.")
+        print(f"✅ Settlement Date(s) {sorted(file_dates)} OK.")
 
     def run_all_checks(self, check_date: bool = True):
         """
@@ -134,8 +131,8 @@ class Transformation:
     def __init__(self, df, mapping_path='moneris_practice_mapping.csv'):
         self.df = df.copy()  # safer to avoid modifying original df
         self.mapping = pd.read_csv(mapping_path, usecols=["Merchant Number", "Internal ID", "Name (no hierarchy)", "Is Practice Closed?"])
-        file_date  = pd.to_datetime(self.df['Settlement Date'], format='%Y%m%d').dt.date.unique()[0]
-        self.date = str(file_date).strip()
+        # All settlement dates in the file (one or many)
+        self.dates = sorted(pd.to_datetime(self.df['Settlement Date'], format='%Y%m%d').dt.date.unique())
         self._merge_mapping()
 
     def _merge_mapping(self):
@@ -186,49 +183,53 @@ class Transformation:
         return [debit_line, credit_line]
 
     def header_maker(self, group):
-        """ Create header dictionary for a group. """
-        practice_name = group['Name (no hierarchy)'].unique()[0]
-        id = str(group['Internal ID'].unique()[0]).strip()
+        """ Create header dictionary for a group (one practice on one settlement date). """
+        practice_name = group['Name (no hierarchy)'].iloc[0]
+        id = str(group['Internal ID'].iloc[0]).strip()
+        date = str(pd.to_datetime(str(group['Settlement Date'].iloc[0]), format='%Y%m%d').date())
         header = {
-                    "trandate": self.date, 
-                    "memo": f"Moneris Collection for {practice_name} at {self.date}", 
+                    "trandate": date,
+                    "memo": f"Moneris Collection for {practice_name} at {date}",
                     "subsidiary": id,
-                    "externalid": f"moneris_{id}_{self.date}" # Replace with f"moneris_{id}_{self.date}_adj" when doing adjustment
+                    "externalid": f"moneris_{id}_{date}" # Replace with f"moneris_{id}_{date}_adj" when doing adjustment
                 }
         return header
-    
+
     def create_payloads(self):
-        """ Create payloads in json form for each group in the DataFrame. 
+        """ Create payloads in json form, one per (Settlement Date, Internal ID) group.
+        Works for both single-date and multi-date files.
         Returns a list of payload dictionaries.
         """
         payloads = []
-        used_ids = set()
-        for id, group in self.df.groupby("Internal ID"):
-            
+        used = set()  # (settlement_date, internal_id)
+
+        # Merchants not found in the mapping file are skipped by groupby (NaN key) -> warn
+        unmapped = self.df[self.df["Internal ID"].isna()]
+        if not unmapped.empty:
+            print(f"****** ‼️ Unmapped merchants (skipped): {unmapped['Merchant Number'].unique().tolist()} ******")
+            print("\n")
+
+        for (settle_date, id), group in self.df.groupby(["Settlement Date", "Internal ID"]):
             # header
             header = self.header_maker(group)
             # body lines
             lines = []
             for _, row in group.iterrows():
-                line_entries = self.lines_maker(row)
-                lines.extend(line_entries)
-            payload = {
-                **header,
-                "lines": lines
-            }
-            payloads.append(payload)
-            used_ids.add(id)
-        
-        active_practice  = self.mapping[self.mapping["Is Practice Closed?"] == "No"]
+                lines.extend(self.lines_maker(row))
+            payloads.append({**header, "lines": lines})
+            used.add((settle_date, id))
+
+        active_practice = self.mapping[self.mapping["Is Practice Closed?"] == "No"]
         all_ids_dict = active_practice.set_index("Internal ID")["Name (no hierarchy)"].to_dict()
-        all_ids_set  = set(active_practice["Internal ID"].unique())
-        missing_ids = all_ids_set - used_ids
-        print(f"****** ✅ Created {len(payloads)} payloads successfully.******")
+        all_ids = active_practice["Internal ID"].unique()
+
+        print(f"****** ✅ Created {len(payloads)} payloads successfully for dates {[str(d) for d in self.dates]} ******")
         print("\n")
-        missing_practice = [all_ids_dict.get(id) for id in missing_ids]
-        print(f"****** ‼️ Missing payloads for {len(missing_practice)} Practices: {missing_practice}******")
+        for settle_date in sorted(self.df["Settlement Date"].unique()):
+            missing_practice = [all_ids_dict.get(i) for i in all_ids if (settle_date, i) not in used]
+            print(f"****** ‼️ {settle_date}: Missing payloads for {len(missing_practice)} Practices: {missing_practice} ******")
         print("\n")
-        return payloads   
+        return payloads
 
 
 
@@ -267,7 +268,7 @@ class Loader:
         self.concurrency = 2
         self.max_retries = 3
     
-    def sign_oauth1(self, url, method="POST", body=""):
+    def sign_oauth1(self, url, method: str = "POST", body: str = ""):
         body_hash = base64.b64encode(hashlib.sha256(body.encode("utf-8")).digest()).decode("utf-8")
 
         client = Client(
@@ -279,9 +280,11 @@ class Loader:
             realm=self.auth["realm"],
         )
 
+        http_method = cast(HTTPMethod, method.upper())
+
         _, headers, _ = client.sign(
             url,
-            http_method=method,
+            http_method=http_method,
             body=body,
             headers={
                 "Content-Type": "application/json",
@@ -421,17 +424,22 @@ class Summary:
         print("\n" + "Summary")
         # Get the moneris file with mapping
         df_mapping = Transformation(df).df
-        df_mapping = df_mapping.groupby("Internal ID").agg({'Net Deposit': lambda x: round(x.sum(),2),
+        # One row per (Settlement Date, Internal ID) -> same grain as the payloads
+        df_mapping = df_mapping.groupby(["Settlement Date", "Internal ID"]).agg({'Net Deposit': lambda x: round(x.sum(),2),
                                        "Merchant Number": lambda x: sorted(int(v) for v in x.dropna().unique()),
                                        "Name (no hierarchy)": 'first'}).reset_index()
         df_mapping["Internal ID"] = df_mapping["Internal ID"].astype(str).str.strip()
+        # Build the same key as header_maker's externalid, so each result matches its own date
+        settle = pd.to_datetime(df_mapping["Settlement Date"].astype(str), format='%Y%m%d').dt.strftime('%Y-%m-%d')
+        df_mapping["payloadExternalId"] = "moneris_" + df_mapping["Internal ID"] + "_" + settle
+        df_mapping.drop(columns="Settlement Date", inplace=True)
 
         # ------------- Successful dataframe ---------------- #
         success = [r for r in results if (r.get("status") == 200 and r.get("body").get("report")== "success")] 
         success_ = pd.DataFrame()
         if success:
             success_df = pd.json_normalize(success)
-            success_ = pd.merge(df_mapping, success_df, left_on='Internal ID', right_on='body.subsidiary', how='right')
+            success_ = pd.merge(df_mapping, success_df, on='payloadExternalId', how='right')
             success_.drop(columns= "body.subsidiary", inplace = True)
        
         #--------------- Duplicate dataframe ----------------- #
@@ -439,14 +447,14 @@ class Summary:
         duplicate_ = pd.DataFrame()
         if duplicate:
             duplicate_df = pd.json_normalize(duplicate)
-            duplicate_ = pd.merge(df_mapping, duplicate_df, left_on='Internal ID', right_on='body.subsidiary', how='right')
+            duplicate_ = pd.merge(df_mapping, duplicate_df, on='payloadExternalId', how='right')
             duplicate_.drop(columns= "body.subsidiary", inplace = True)
             
         # --------------- Failed dataframe ----------------- #
         fail_df = pd.DataFrame(fails) if fails else None
         fail_ = pd.DataFrame()
         if fail_df is not None:
-            fail_ = pd.merge(df_mapping, fail_df, left_on='Internal ID', right_on='Internal ID', how='right')
+            fail_ = pd.merge(df_mapping, fail_df.drop(columns="Internal ID"), on='payloadExternalId', how='right')
             fail_.drop(columns="Message", inplace=True)
             fail_.rename(columns={"Name":"body.report"}, inplace=True)
         

@@ -92,8 +92,9 @@ Upload `netsuite_posting_je.js` to NetSuite as a RESTlet. Update the RESTlet URL
 
 1. Log in to the [Moneris portal](https://www.moneris.com/en/login-portal-hub).
 2. Go to **Reports → CSV Downloader**.
-3. Select **Sales summary by merchant**, choose the settlement date, and download the CSV to your configured folder.
-4. Run:
+3. Select **Sales summary by merchant**, choose the settlement date (or a date range), and download the CSV to your configured folder.
+4. Make sure amount columns have **no thousands separators** (see [Input file requirements](#input-file-requirements)).
+5. Run:
 
 ```bash
 python main.py
@@ -101,12 +102,25 @@ python main.py
 
 ### What `main.py` does
 
-1. **Checkpoint** — reads the latest sales summary CSV, validates columns, totals, card types, and optionally settlement date
+1. **Checkpoint** — reads the latest sales summary CSV, validates columns, totals, card types, and optionally every settlement date in the file
 2. **Store raw data** — inserts validated rows into `Moneris.db` (`Raw_Data` table)
-3. **Transformation** — merges merchant mapping and builds one NetSuite JE payload per practice
+3. **Transformation** — merges merchant mapping and builds one NetSuite JE payload per **practice per settlement date**. Warns about merchants missing from the mapping file and lists, for each date, active practices with no payload
 4. **FinalCheckpoint** — verifies each payload is balanced (debits = credits)
 5. **Loader** — uploads payloads asynchronously to NetSuite (OAuth 1.0, with retries)
-6. **Summary** — prints results, saves to `JE_Summary` in SQLite, and exports `Summary_Csv_Files/JE_Summary_YYYY-MM-DD.csv`
+6. **Summary** — prints results (one row per journal entry, with that entry's own Net Deposit), saves to `JE_Summary` in SQLite, and exports `Summary_Csv_Files/JE_Summary_YYYY-MM-DD.csv`
+
+### Single-date and multi-date files
+
+The pipeline handles both without any setting:
+
+| File contains | Payloads created | Example `externalid` |
+|---------------|------------------|----------------------|
+| One settlement date | One per practice | `moneris_83_2026-09-29` |
+| Several settlement dates | One per practice per date | `moneris_83_2026-09-01`, `moneris_83_2026-09-02`, … |
+
+Each journal entry's `trandate`, header memo, and `externalid` use its own settlement date. Because the `externalid` format is unchanged for single-date files, NetSuite's duplicate check still recognizes entries posted before this change.
+
+In the summary, results are matched to the source data by `payloadExternalId`, so each row shows the Net Deposit for that practice on that date.
 
 ### Options in `main.py`
 
@@ -114,7 +128,22 @@ python main.py
 - Disable settlement date validation: `Checkpoint().run_all_checks(check_date=False)`
 - Enable date validation (default): `Checkpoint().run_all_checks()`
 
-> **Note:** The script processes one file per run (the most recently modified file in the download folder). To process multiple dates, download each CSV and run again.
+With date validation on, **every** settlement date in the file must be expected:
+
+- **Monday** — last Friday and/or last Saturday
+- **Any other day** — yesterday only
+
+Any other date raises an error. Turn date validation off (`check_date=False`) when back-loading a date range, such as a month-to-date file.
+
+> **Note:** The script processes one file per run (the most recently modified file in the download folder, or the `test_file_path` you pass). A single file may contain one or many settlement dates.
+
+### Input file requirements
+
+- Required columns: `Settlement Date` (`YYYYMMDD`), `Merchant Number`, `Card Type`, `Net Total`, `Net Deposit`
+- Valid card types: 1 (Visa), 2 (Mastercard), 3 (Amex), 6 (Discover), 10 (Interac), 16 (UnionPay)
+- **Amounts must be plain numbers** — no thousands separators (`1717.00`, not `"1,717.00"`). Moneris exports sometimes include commas; `pd.read_csv` then reads the amounts as text, and the run fails at `FinalCheckpoint` with `TypeError: unsupported operand type(s) for +: 'int' and 'str'`. Fix it in Excel before running: format `Net Total` and `Net Deposit` as **General** (or **Number** with *Use 1000 Separator* unticked), then save as CSV.
+
+> **Heads-up:** `store_to_sql` runs before `FinalCheckpoint`, so a failed run still writes raw rows to `Raw_Data`. Because inserts use `INSERT OR IGNORE`, a rerun will not overwrite them — delete those rows first if they were stored with bad amounts.
 
 ---
 
@@ -128,6 +157,8 @@ python main_finadj.py
 ```
 
 This validates the adjustment CSV, builds one payload per row, uploads to NetSuite, and prints a success/failure/duplicate summary. Unlike the sales workflow, it does not write to SQLite or export a summary CSV.
+
+> **Note:** This workflow still assumes a single `Deposit Date` per file (it uses the first date for every payload). Multi-date support has only been added to the sales summary workflow.
 
 ---
 

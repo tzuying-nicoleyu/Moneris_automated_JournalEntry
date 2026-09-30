@@ -62,7 +62,7 @@ async def main():
     # read and validate data
 
     # Do this while testing, uncomment test_file_path and pass through the Checkpoint() class
-    #test_file_path = r"C:\Users\Tzuying\Project\Moneris\Adjustment_File\Financial_Adjustment_Template_File.csv"
+    #test_file_path = r"C:\Users\Tzuying\OneDrive - smilesfirstcorp\Reporting & Business Intelligence\Moneris\Downloaded_Files\Sales Summary Endoclinic First.csv"
 
     # Replace with the following, if you want to turn off the check date features.
     df = Checkpoint().run_all_checks(check_date=False)
